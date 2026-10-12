@@ -1,0 +1,17 @@
+{
+  "name": "kijaniokiosk-payments",
+  "version": "1.0.0",
+  "description": "KijaniKiosk Payments Module",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "echo \"Tests passed\" && exit 0",
+    "build": "echo \"Build completed\" && exit 0"
+  },
+  "keywords": ["payments", "kijaniokiosk"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  }
+}

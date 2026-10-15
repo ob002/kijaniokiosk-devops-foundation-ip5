@@ -1,54 +1,96 @@
 pipeline {
-    // Requirement: Pinned Docker agent, not 'latest'
-    agent {
-        docker {
-            image 'node:18-alpine'
-        }
-    }
+    agent any
 
     environment {
-        // Requirement: Use VM IP, NOT localhost, to avoid Docker network isolation issues
         NEXUS_URL = 'http://192.168.0.106:8081'
         NEXUS_REPO = 'kijaniokiosk-npm'
         NEXUS_CREDENTIAL_ID = 'nexus-creds'
-        
-        // Requirement: Semantic versioning + Git SHA for unique artifacts
-        GIT_SHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
         SEMVER = '1.0.0'
-        VERSION = "${SEMVER}-${GIT_SHA}"
     }
 
     stages {
-        stage('Lint') {
+        stage('Checkout') {
             steps {
-                echo 'Running Lint stage...'
-                sh 'npm install'
-                // Requirement: Lint runs BEFORE Build (fail-fast)
-                sh 'npm run lint'
+                deleteDir()
+
+                script {
+                    def checkoutInfo = git(
+                        branch: 'feature/week5-ci-pipeline',
+                        url: 'https://github.com/ob002/kijaniokiosk-devops-foundation-ip5.git'
+                    )
+
+                    env.GIT_SHA = checkoutInfo.GIT_COMMIT.take(7)
+                    env.VERSION = "${env.SEMVER}-${env.GIT_SHA}"
+
+                    echo "Commit: ${env.GIT_SHA}"
+                    echo "Build version: ${env.VERSION}"
+                }
+            }
+        }
+
+        stage('Lint') {
+            agent {
+                docker {
+                    image 'node:20-alpine'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh '''
+                    set -eu
+                    npm install
+                    npm run lint
+                '''
             }
         }
 
         stage('Build') {
+            agent {
+                docker {
+                    image 'node:20-alpine'
+                    reuseNode true
+                }
+            }
             steps {
-                echo 'Running Build stage...'
-                sh 'npm run build'
+                sh '''
+                    set -eu
+                    npm install
+                    npm run build
+                '''
             }
         }
 
         stage('Verify') {
-            // Requirement: Parallel execution for Test and Security Audit
             parallel {
                 stage('Test') {
+                    agent {
+                        docker {
+                            image 'node:20-alpine'
+                            reuseNode true
+                        }
+                    }
                     steps {
-                        echo 'Running Tests...'
-                        sh 'npm test'
+                        sh '''
+                            set -eu
+                            npm install
+                            npm test
+                        '''
                     }
                 }
+
                 stage('Security Audit') {
+                    agent {
+                        docker {
+                            image 'node:20-alpine'
+                            reuseNode true
+                        }
+                    }
                     steps {
-                        echo 'Running Security Audit...'
-                        // Allow audit to fail the build if high vulnerabilities are found
-                        sh 'npm audit --audit-level=high'
+                        sh '''
+                            set -eu
+                            npm install
+                            npm audit --audit-level=high
+                        '''
                     }
                 }
             }
@@ -56,50 +98,60 @@ pipeline {
 
         stage('Archive') {
             steps {
-                echo 'Archiving build artifacts...'
-                sh "tar -czf kijaniokiosk-payments-${VERSION}.tar.gz dist/ package.json"
-                archiveArtifacts artifacts: "kijaniokiosk-payments-${VERSION}.tar.gz", fingerprint: true
+                sh '''
+                    set -eu
+                    tar -czf "build-${VERSION}.tar.gz" dist package.json
+                '''
+                archiveArtifacts artifacts: "build-${VERSION}.tar.gz",
+                    fingerprint: true
             }
         }
 
         stage('Publish') {
+            agent {
+                docker {
+                    image 'node:20-alpine'
+                    reuseNode true
+                }
+            }
             steps {
-                echo 'Publishing to Nexus...'
-                // Requirement: withCredentials using ID only, no hardcoded secrets
-                withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIAL_ID}", usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-                    // Requirement: .npmrc created and deleted in the SAME sh block
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: "${NEXUS_CREDENTIAL_ID}",
+                        usernameVariable: 'NEXUS_USER',
+                        passwordVariable: 'NEXUS_PASS'
+                    )
+                ]) {
                     sh '''
-                        echo "//${NEXUS_URL}/repository/${NEXUS_REPO}/:_auth=$(echo -n ${NEXUS_USER}:${NEXUS_PASS} | base64)" > .npmrc
-                        echo "//${NEXUS_URL}/repository/${NEXUS_REPO}/:always-auth=true" >> .npmrc
-                        
-                        # Publish the package
-                        npm publish --registry ${NEXUS_URL}/repository/${NEXUS_REPO}/
-                        
-                        # Clean up immediately to prevent credential leakage
-                        rm -f .npmrc
+                        set +x
+                        set -eu
+
+                        REGISTRY="${NEXUS_URL}/repository/${NEXUS_REPO}/"
+                        AUTH="$(printf '%s' "${NEXUS_USER}:${NEXUS_PASS}" | base64 | tr -d '\\n')"
+
+                        printf '%s\\n' \
+                          "//192.168.0.106:8081/repository/${NEXUS_REPO}/:_auth=${AUTH}" \
+                          "registry=${REGISTRY}" \
+                          "always-auth=true" > .npmrc
+
+                        trap 'rm -f .npmrc' EXIT
+                        npm publish --registry="${REGISTRY}"
                     '''
                 }
             }
         }
     }
 
-    // Requirement: Post block with always, success, failure, changed
     post {
         always {
-            echo 'Cleaning up workspace...'
-            // Requirement: cleanWs() in post always
-            cleanWs()
+            cleanWs notFailBuild: true
+            echo 'Pipeline execution finished.'
         }
         success {
-            echo "SUCCESS: Artifact published successfully."
-            echo "Nexus URL: ${NEXUS_URL}/repository/${NEXUS_REPO}/kijaniokiosk-payments/-/kijaniokiosk-payments-${VERSION}.tgz"
+            echo 'SUCCESS: CI pipeline completed.'
         }
         failure {
-            echo "FAILURE: Pipeline failed at stage: ${currentBuild.currentResult}"
-            // In a real scenario, you would add Slack/Email notification here
-        }
-        changed {
-            echo "CHANGED: Build status changed from ${currentBuild.previousResult} to ${currentBuild.currentResult}"
+            echo 'FAILURE: Check the first failing stage in Console Output.'
         }
     }
 }

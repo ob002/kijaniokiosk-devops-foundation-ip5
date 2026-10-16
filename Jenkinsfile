@@ -13,23 +13,15 @@ pipeline {
             steps {
                 deleteDir()
 
+                git branch: 'feature/week5-ci-pipeline',
+                    url: 'https://github.com/ob002/kijaniokiosk-devops-foundation-ip5.git'
+
                 script {
-                    def checkoutCommit = git(
-                        branch: 'feature/week5-ci-pipeline',
-                        url: 'https://github.com/ob002/kijaniokiosk-devops-foundation-ip5.git'
-                    )
+                    env.GIT_SHA = sh(
+                        script: 'git rev-parse --short=7 HEAD',
+                        returnStdout: true
+                    ).trim()
 
-                    if (!checkoutCommit) {
-                        error('Git checkout did not provide a commit ID.')
-                    }
-
-                    def fullCommit = checkoutCommit.toString()
-
-                    if (fullCommit.length() < 7) {
-                        error('Git returned an invalid commit ID.')
-                    }
-
-                    env.GIT_SHA = fullCommit.substring(0, 7)
                     env.VERSION = "${env.SEMVER}-${env.GIT_SHA}"
 
                     echo "Checked out commit: ${env.GIT_SHA}"
@@ -155,7 +147,6 @@ pipeline {
                           "always-auth=true" > .npmrc
 
                         trap 'rm -f .npmrc' EXIT
-
                         npm publish --registry="${REGISTRY}"
                     '''
                 }

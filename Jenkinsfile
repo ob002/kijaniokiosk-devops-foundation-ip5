@@ -3,7 +3,7 @@ pipeline {
     agent {
         docker {
             image 'node:18'
-            args '-e HOME=/tmp -e npm_config_cache=/tmp/.npm'
+            args '-e HOME=/tmp -e npm_config_cache=/tmp/.npm -v /var/lib/jenkins/npm-cache:/tmp/.npm'
         }
     }
 

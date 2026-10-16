@@ -12,13 +12,12 @@ pipeline {
     }
 
     stages {
-        stage('Setup Version') {
+        stage('Set Version') {
             steps {
                 script {
-                    // This safe method gets the Git hash without triggering Jenkins security blocks
+                    // This is the standard, approved Jenkins way to get the Git hash
                     env.GIT_SHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    env.SEMVER = '1.0.0'
-                    env.VERSION = "${env.SEMVER}-${env.GIT_SHA}"
+                    env.VERSION = "1.0.0-${env.GIT_SHA}"
                     echo "Building version: ${env.VERSION}"
                 }
             }

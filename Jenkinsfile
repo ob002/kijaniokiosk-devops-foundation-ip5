@@ -1,3 +1,4 @@
+```groovy
 pipeline {
     agent any
 
@@ -14,15 +15,25 @@ pipeline {
                 deleteDir()
 
                 script {
-                    def checkoutInfo = git(
+                    def checkoutCommit = git(
                         branch: 'feature/week5-ci-pipeline',
                         url: 'https://github.com/ob002/kijaniokiosk-devops-foundation-ip5.git'
                     )
 
-                    env.GIT_SHA = checkoutInfo.GIT_COMMIT.take(7)
+                    if (!checkoutCommit) {
+                        error('Git checkout did not provide a commit ID.')
+                    }
+
+                    def fullCommit = checkoutCommit.toString()
+
+                    if (fullCommit.length() < 7) {
+                        error('Git returned an invalid commit ID.')
+                    }
+
+                    env.GIT_SHA = fullCommit.substring(0, 7)
                     env.VERSION = "${env.SEMVER}-${env.GIT_SHA}"
 
-                    echo "Commit: ${env.GIT_SHA}"
+                    echo "Checked out commit: ${env.GIT_SHA}"
                     echo "Build version: ${env.VERSION}"
                 }
             }
@@ -36,6 +47,7 @@ pipeline {
                 }
             }
             steps {
+                echo 'Running Lint stage...'
                 sh '''
                     set -eu
                     npm install
@@ -52,6 +64,7 @@ pipeline {
                 }
             }
             steps {
+                echo 'Running Build stage...'
                 sh '''
                     set -eu
                     npm install
@@ -70,6 +83,7 @@ pipeline {
                         }
                     }
                     steps {
+                        echo 'Running Tests...'
                         sh '''
                             set -eu
                             npm install
@@ -86,6 +100,7 @@ pipeline {
                         }
                     }
                     steps {
+                        echo 'Running Security Audit...'
                         sh '''
                             set -eu
                             npm install
@@ -98,12 +113,16 @@ pipeline {
 
         stage('Archive') {
             steps {
+                echo 'Archiving build artifacts...'
                 sh '''
                     set -eu
-                    tar -czf "build-${VERSION}.tar.gz" dist package.json
+                    tar -czf "kijaniokiosk-payments-${VERSION}.tar.gz" dist/ package.json
                 '''
-                archiveArtifacts artifacts: "build-${VERSION}.tar.gz",
+
+                archiveArtifacts(
+                    artifacts: "kijaniokiosk-payments-${VERSION}.tar.gz",
                     fingerprint: true
+                )
             }
         }
 
@@ -115,6 +134,8 @@ pipeline {
                 }
             }
             steps {
+                echo 'Publishing to Nexus...'
+
                 withCredentials([
                     usernamePassword(
                         credentialsId: "${NEXUS_CREDENTIAL_ID}",
@@ -135,6 +156,7 @@ pipeline {
                           "always-auth=true" > .npmrc
 
                         trap 'rm -f .npmrc' EXIT
+
                         npm publish --registry="${REGISTRY}"
                     '''
                 }
@@ -144,14 +166,22 @@ pipeline {
 
     post {
         always {
+            echo 'Cleaning up workspace...'
             cleanWs notFailBuild: true
-            echo 'Pipeline execution finished.'
         }
+
         success {
-            echo 'SUCCESS: CI pipeline completed.'
+            echo 'SUCCESS: Pipeline completed and artifact was published.'
+            echo "Nexus repository: ${NEXUS_URL}/repository/${NEXUS_REPO}/"
         }
+
         failure {
-            echo 'FAILURE: Check the first failing stage in Console Output.'
+            echo "FAILURE: Pipeline result: ${currentBuild.currentResult}"
+        }
+
+        changed {
+            echo "CHANGED: Build result is ${currentBuild.currentResult}"
         }
     }
 }
+```

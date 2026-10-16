@@ -97,7 +97,7 @@ pipeline {
             echo "FAILURE: Pipeline failed. Check the red stage in Stage View."
         }
         changed {
-            echo "CHANGED: Build status changed from ${currentBuild.previousResult} to ${currentBuild.currentResult}"
+            echo "CHANGED: Build status changed, now ${currentBuild.currentResult}"
         }
     }
 }

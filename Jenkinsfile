@@ -1,102 +1,56 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:18'
+        }
+    }
 
     environment {
         NEXUS_URL = 'http://192.168.0.106:8081'
         NEXUS_REPO = 'kijaniokiosk-npm'
         NEXUS_CREDENTIAL_ID = 'nexus-creds'
-        SEMVER = '1.0.0'
     }
 
     stages {
-        stage('Checkout') {
+        stage('Setup Version') {
             steps {
-                deleteDir()
-
-                git branch: 'feature/week5-ci-pipeline',
-                    url: 'https://github.com/ob002/kijaniokiosk-devops-foundation-ip5.git'
-
                 script {
-                    env.GIT_SHA = sh(
-                        script: 'git rev-parse --short=7 HEAD',
-                        returnStdout: true
-                    ).trim()
-
+                    // This safe method gets the Git hash without triggering Jenkins security blocks
+                    env.GIT_SHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    env.SEMVER = '1.0.0'
                     env.VERSION = "${env.SEMVER}-${env.GIT_SHA}"
-
-                    echo "Checked out commit: ${env.GIT_SHA}"
-                    echo "Build version: ${env.VERSION}"
+                    echo "Building version: ${env.VERSION}"
                 }
             }
         }
 
         stage('Lint') {
-            agent {
-                docker {
-                    image 'node:20-alpine'
-                    reuseNode true
-                }
-            }
             steps {
                 echo 'Running Lint stage...'
-                sh '''
-                    set -eu
-                    npm install
-                    npm run lint
-                '''
+                sh 'npm install'
+                sh 'npm run lint'
             }
         }
 
         stage('Build') {
-            agent {
-                docker {
-                    image 'node:20-alpine'
-                    reuseNode true
-                }
-            }
             steps {
                 echo 'Running Build stage...'
-                sh '''
-                    set -eu
-                    npm install
-                    npm run build
-                '''
+                sh 'npm run build'
             }
         }
 
         stage('Verify') {
             parallel {
                 stage('Test') {
-                    agent {
-                        docker {
-                            image 'node:20-alpine'
-                            reuseNode true
-                        }
-                    }
                     steps {
                         echo 'Running Tests...'
-                        sh '''
-                            set -eu
-                            npm install
-                            npm test
-                        '''
+                        sh 'npm test'
                     }
                 }
-
                 stage('Security Audit') {
-                    agent {
-                        docker {
-                            image 'node:20-alpine'
-                            reuseNode true
-                        }
-                    }
                     steps {
                         echo 'Running Security Audit...'
-                        sh '''
-                            set -eu
-                            npm install
-                            npm audit --audit-level=high
-                        '''
+                        sh 'npm audit --audit-level=high'
                     }
                 }
             }
@@ -105,49 +59,20 @@ pipeline {
         stage('Archive') {
             steps {
                 echo 'Archiving build artifacts...'
-                sh '''
-                    set -eu
-                    tar -czf "kijaniokiosk-payments-${VERSION}.tar.gz" dist/ package.json
-                '''
-
-                archiveArtifacts(
-                    artifacts: "kijaniokiosk-payments-${VERSION}.tar.gz",
-                    fingerprint: true
-                )
+                sh "tar -czf kijaniokiosk-payments-${VERSION}.tar.gz dist/ package.json"
+                archiveArtifacts artifacts: "kijaniokiosk-payments-${VERSION}.tar.gz", fingerprint: true
             }
         }
 
         stage('Publish') {
-            agent {
-                docker {
-                    image 'node:20-alpine'
-                    reuseNode true
-                }
-            }
             steps {
                 echo 'Publishing to Nexus...'
-
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: "${NEXUS_CREDENTIAL_ID}",
-                        usernameVariable: 'NEXUS_USER',
-                        passwordVariable: 'NEXUS_PASS'
-                    )
-                ]) {
+                withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIAL_ID}", usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                     sh '''
-                        set +x
-                        set -eu
-
-                        REGISTRY="${NEXUS_URL}/repository/${NEXUS_REPO}/"
-                        AUTH="$(printf '%s' "${NEXUS_USER}:${NEXUS_PASS}" | base64 | tr -d '\\n')"
-
-                        printf '%s\\n' \
-                          "//192.168.0.106:8081/repository/${NEXUS_REPO}/:_auth=${AUTH}" \
-                          "registry=${REGISTRY}" \
-                          "always-auth=true" > .npmrc
-
-                        trap 'rm -f .npmrc' EXIT
-                        npm publish --registry="${REGISTRY}"
+                        echo "//${NEXUS_URL}/repository/${NEXUS_REPO}/:_auth=$(echo -n ${NEXUS_USER}:${NEXUS_PASS} | base64)" > .npmrc
+                        echo "//${NEXUS_URL}/repository/${NEXUS_REPO}/:always-auth=true" >> .npmrc
+                        npm publish --registry ${NEXUS_URL}/repository/${NEXUS_REPO}/
+                        rm -f .npmrc
                     '''
                 }
             }
@@ -157,20 +82,17 @@ pipeline {
     post {
         always {
             echo 'Cleaning up workspace...'
-            cleanWs notFailBuild: true
+            cleanWs()
         }
-
         success {
-            echo 'SUCCESS: Pipeline completed and artifact was published.'
-            echo "Nexus repository: ${NEXUS_URL}/repository/${NEXUS_REPO}/"
+            echo "SUCCESS: Artifact published successfully."
+            echo "Nexus URL: ${NEXUS_URL}/repository/${NEXUS_REPO}/kijaniokiosk-payments/-/kijaniokiosk-payments-${VERSION}.tgz"
         }
-
         failure {
-            echo "FAILURE: Pipeline result: ${currentBuild.currentResult}"
+            echo "FAILURE: Pipeline failed at stage: ${currentBuild.currentResult}"
         }
-
         changed {
-            echo "CHANGED: Build result is ${currentBuild.currentResult}"
+            echo "CHANGED: Build status changed from ${currentBuild.previousResult} to ${currentBuild.currentResult}"
         }
     }
 }

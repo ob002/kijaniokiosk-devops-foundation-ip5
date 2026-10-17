@@ -1,0 +1,247 @@
+Started by user Amos Oburi Ombworo
+
+Checking out git https://github.com/ob002/kijaniokiosk-devops-foundation-ip5.git into /var/lib/jenkins/workspace/kijaniokiosk-ci-pipeline@script/be4a01a77fe507d2c0c7ed99e3d81828db8890c64dd3f3416c0606e66cfe1421 to read Jenkinsfile
+The recommended git tool is: NONE
+No credentials specified
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/kijaniokiosk-ci-pipeline@script/be4a01a77fe507d2c0c7ed99e3d81828db8890c64dd3f3416c0606e66cfe1421/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/ob002/kijaniokiosk-devops-foundation-ip5.git # timeout=10
+Fetching upstream changes from https://github.com/ob002/kijaniokiosk-devops-foundation-ip5.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.53.0'
+ > git fetch --tags --force --progress -- https://github.com/ob002/kijaniokiosk-devops-foundation-ip5.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/feature/week5-ci-pipeline^{commit} # timeout=10
+Checking out Revision 4751c685d0d748d41a541fc6bacc4046d726a46e (refs/remotes/origin/feature/week5-ci-pipeline)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 4751c685d0d748d41a541fc6bacc4046d726a46e # timeout=10
+Commit message: "Restore requirement comments, add FAULT injection parameter, harden .npmrc cleanup"
+ > git rev-list --no-walk f3408c37fc2e3f794d5d941044c2abb76f1e1c7f # timeout=10
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins
+ in /var/lib/jenkins/workspace/kijaniokiosk-ci-pipeline
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+The recommended git tool is: NONE
+No credentials specified
+Cloning the remote Git repository
+Cloning repository https://github.com/ob002/kijaniokiosk-devops-foundation-ip5.git
+ > git init /var/lib/jenkins/workspace/kijaniokiosk-ci-pipeline # timeout=10
+Fetching upstream changes from https://github.com/ob002/kijaniokiosk-devops-foundation-ip5.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.53.0'
+ > git fetch --tags --force --progress -- https://github.com/ob002/kijaniokiosk-devops-foundation-ip5.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git config remote.origin.url https://github.com/ob002/kijaniokiosk-devops-foundation-ip5.git # timeout=10
+ > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10
+Avoid second fetch
+ > git rev-parse refs/remotes/origin/feature/week5-ci-pipeline^{commit} # timeout=10
+Checking out Revision 4751c685d0d748d41a541fc6bacc4046d726a46e (refs/remotes/origin/feature/week5-ci-pipeline)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 4751c685d0d748d41a541fc6bacc4046d726a46e # timeout=10
+Commit message: "Restore requirement comments, add FAULT injection parameter, harden .npmrc cleanup"
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] isUnix
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] sh
++ docker inspect -f . node:18
+.
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] withDockerContainer
+Jenkins does not seem to be running inside a container
+$ docker run -t -d -u 126:128 -e HOME=/tmp -e npm_config_cache=/tmp/.npm -w /var/lib/jenkins/workspace/kijaniokiosk-ci-pipeline -v /var/lib/jenkins/workspace/kijaniokiosk-ci-pipeline:/var/lib/jenkins/workspace/kijaniokiosk-ci-pipeline:rw,z -v /var/lib/jenkins/workspace/kijaniokiosk-ci-pipeline@tmp:/var/lib/jenkins/workspace/kijaniokiosk-ci-pipeline@tmp:rw,z -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** node:18 cat
+$ docker top d0fa16248dca0fd7910b6fe9850432949042349a31dfcc7bc883d18f8b8f354e -eo pid,comm
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Set Version)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] echo
+Building version: 1.0.0-4751c68
+[Pipeline] echo
+Fault injection setting: none
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Lint)
+[Pipeline] echo
+Running Lint stage...
+[Pipeline] sh
++ npm install
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+
+added 99 packages, and audited 100 packages in 3m
+
+25 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+[Pipeline] sh
++ npm run lint
+
+> kijaniokiosk-payments@1.0.0 lint
+> eslint .
+
+[Pipeline] script
+[Pipeline] {
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Build)
+[Pipeline] echo
+Running Build stage...
+[Pipeline] sh
++ npm run build
+
+> kijaniokiosk-payments@1.0.0 build
+> echo "Build completed" && exit 0
+
+Build completed
+[Pipeline] script
+[Pipeline] {
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Verify)
+[Pipeline] parallel
+[Pipeline] { (Branch: Test)
+[Pipeline] { (Branch: Security Audit)
+[Pipeline] stage
+[Pipeline] { (Test)
+[Pipeline] stage
+[Pipeline] { (Security Audit)
+[Pipeline] echo
+Running Tests...
+[Pipeline] sh
+[Pipeline] echo
+Running Security Audit...
+[Pipeline] script
+[Pipeline] {
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] sh
++ npm audit --audit-level=high
++ npm test
+
+> kijaniokiosk-payments@1.0.0 test
+> echo "Tests passed" && exit 0
+
+Tests passed
+[Pipeline] script
+[Pipeline] {
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+found 0 vulnerabilities
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // parallel
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Archive)
+[Pipeline] echo
+Archiving build artifacts...
+[Pipeline] script
+[Pipeline] {
+[Pipeline] sh
++ tar -czf kijaniokiosk-payments-1.0.0-4751c68.tar.gz dist/ package.json
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] archiveArtifacts
+Archiving artifacts
+Recording fingerprints
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Publish)
+[Pipeline] echo
+Publishing to Nexus repository: kijaniokiosk-npm
+[Pipeline] withCredentials
+Masking supported pattern matches of $NEXUS_USER or $NEXUS_PASS
+[Pipeline] {
+[Pipeline] sh
++ trap rm -f .npmrc EXIT
++ npm version 1.0.0-4751c68 --no-git-tag-version --allow-same-version
+v1.0.0-4751c68
++ printf %s:%s **** ****
++ base64
++ tr -d \n
++ AUTH=****46****
++ echo //192.168.0.106:8081/repository/kijaniokiosk-npm/:_auth=****46****
++ echo //192.168.0.106:8081/repository/kijaniokiosk-npm/:always-auth=true
++ npm publish --registry http://192.168.0.106:8081/repository/kijaniokiosk-npm/
+npm notice
+npm notice package: kijaniokiosk-payments@1.0.0-4751c68
+npm notice Tarball Contents
+npm notice 216B .eslintrc.json
+npm notice 6.0kB Jenkinsfile
+npm notice 29B dist/app.js
+npm notice 235B index.js
+npm notice 422B package.json
+npm notice Tarball Details
+npm notice name: kijaniokiosk-payments
+npm notice version: 1.0.0-4751c68
+npm notice filename: kijaniokiosk-payments-1.0.0-4751c68.tgz
+npm notice package size: 2.4 kB
+npm notice unpacked size: 6.9 kB
+npm notice shasum: ea2667a9b30f0c53e2da4a814faf9344f3b54b49
+npm notice integrity: sha512-1TVo+H42UvCQW[...]1fXTPo238k6rw==
+npm notice total files: 5
+npm notice
+npm notice Publishing to http://192.168.0.106:8081/repository/kijaniokiosk-npm/ with tag latest and default access
++ kijaniokiosk-payments@1.0.0-4751c68
++ rm -f .npmrc
++ rm -f .npmrc
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] echo
+Cleaning up workspace...
+[Pipeline] cleanWs
+[WS-CLEANUP] Deleting project workspace...
+[WS-CLEANUP] Deferred wipeout is used...
+[WS-CLEANUP] done
+[Pipeline] echo
+SUCCESS: Artifact published successfully.
+[Pipeline] echo
+Nexus URL: http://192.168.0.106:8081/repository/kijaniokiosk-npm/kijaniokiosk-payments/-/kijaniokiosk-payments-1.0.0-4751c68.tgz
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+$ docker stop --time=1 d0fa16248dca0fd7910b6fe9850432949042349a31dfcc7bc883d18f8b8f354e
+$ docker rm -f --volumes d0fa16248dca0fd7910b6fe9850432949042349a31dfcc7bc883d18f8b8f354e
+[Pipeline] // withDockerContainer
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS

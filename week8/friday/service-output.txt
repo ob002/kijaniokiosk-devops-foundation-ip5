@@ -1,0 +1,13 @@
+=== ENDPOINTS ===
+NAME                  ENDPOINTS                         AGE
+kk-payments-service   10.244.0.6:3001,10.244.0.7:3001   4s
+
+=== HEALTH CHECK VIA NODEPORT ===
+
+=== IN-CLUSTER DNS CHECK ===
+Session ended, resume using 'kubectl attach curl-test -c curl-test -n default -i -t' command
+pod "curl-test" deleted from default namespace
+=== HEALTH CHECK VIA NODEPORT (RETRY) ===
+{"status":"ok","version":"1.0.0","timestamp":"2026-11-02T11:37:46.717Z"}
+=== IN-CLUSTER DNS CHECK (RETRY) ===
+{"status":"ok","version":"1.0.0","timestamp":"2026-11-02T11:37:47.202Z"}

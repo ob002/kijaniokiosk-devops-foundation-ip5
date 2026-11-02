@@ -1,0 +1,25 @@
+VERSION: 1.0.0
+GITSHA: c85ead7
+TAG: 1.0.0-c85ead7
+--- PUSH OUTPUT ---
+The push refers to repository [localhost:5000/kk-payments]
+3437b1a8f0a4: Preparing
+efcbf4eda985: Preparing
+89e0ede59755: Preparing
+17409f697fd0: Preparing
+fb62233e2104: Preparing
+ca97d26c5ce9: Preparing
+0b44b2151d78: Preparing
+ca97d26c5ce9: Waiting
+0b44b2151d78: Waiting
+3437b1a8f0a4: Layer already exists
+89e0ede59755: Layer already exists
+17409f697fd0: Layer already exists
+fb62233e2104: Layer already exists
+efcbf4eda985: Layer already exists
+ca97d26c5ce9: Layer already exists
+0b44b2151d78: Layer already exists
+1.0.0-c85ead7: digest: sha256:54e83c5921de0598f2fe65cb1c60dcd86cc4431c9277f704ed76d0bee9ab8efc size: 1779
+--- PULL VERIFICATION ---
+IMAGE                                      ID             DISK USAGE   CONTENT SIZE   EXTRA
+localhost:5000/kk-payments:1.0.0-c85ead7   bc621fd338b1       91.7MB             0B        

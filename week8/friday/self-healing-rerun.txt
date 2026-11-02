@@ -1,0 +1,23 @@
+=== SELF-HEALING MEASUREMENT ===
+Starting measurement at: Mon Nov  2 02:47:41 PM EAT 2026
+T0 (Seconds since epoch): 1793620061
+
+=== PODS BEFORE DELETION ===
+NAME                           READY   STATUS    RESTARTS   AGE
+kk-payments-5468655bc4-2rvlk   1/1     Running   0          22m
+kk-payments-5468655bc4-759l5   1/1     Running   0          22m
+
+Deleting pod: pod/kk-payments-5468655bc4-2rvlk
+pod "kk-payments-5468655bc4-2rvlk" deleted from default namespace
+Waiting for replacement pod to be ready...
+pod/kk-payments-5468655bc4-759l5 condition met
+pod/kk-payments-5468655bc4-cc6mw condition met
+T1 (Seconds since epoch): 1793620093
+
+=== RECOVERY TIME ===
+Total recovery time: 32 seconds
+
+=== PODS AFTER RECOVERY ===
+NAME                           READY   STATUS    RESTARTS   AGE
+kk-payments-5468655bc4-759l5   1/1     Running   0          23m
+kk-payments-5468655bc4-cc6mw   1/1     Running   0          31s

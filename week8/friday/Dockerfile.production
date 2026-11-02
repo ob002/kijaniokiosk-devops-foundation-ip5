@@ -1,0 +1,25 @@
+# Stage 1: Build
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# Stage 2: Production (Ultra-slim to meet <100MB requirement)
+FROM alpine:3.19
+# Install ONLY the nodejs runtime (no npm needed in production)
+RUN apk add --no-cache nodejs
+RUN addgroup -S kijani && adduser -S kijani -G kijani
+WORKDIR /app
+
+# Copy compiled code and production dependencies from builder
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
+
+USER kijani
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
+  CMD wget -qO- http://localhost:3001/health || exit 1
+EXPOSE 3001
+CMD ["node", "dist/index.js"]

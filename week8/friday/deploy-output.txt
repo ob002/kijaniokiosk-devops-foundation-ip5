@@ -1,0 +1,8 @@
+=== DEPLOYMENT STATUS ===
+NAME          READY   UP-TO-DATE   AVAILABLE   AGE
+kk-payments   2/2     2            2           4s
+
+=== POD STATUS ===
+NAME                           READY   STATUS    RESTARTS   AGE
+kk-payments-5468655bc4-2rvlk   1/1     Running   0          4s
+kk-payments-5468655bc4-759l5   1/1     Running   0          4s
